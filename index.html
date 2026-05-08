@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Senttinell - Matrix Protocol</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* Impede a rolagem da página */
+            background-color: #000;
+            font-family: 'Courier New', Courier, monospace;
+            color: #0f0; /* Verde Matrix clássico */
+        }
+
+        /* O Canvas para a chuva de letras */
+        #matrixCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1; /* Fica atrás de tudo */
+        }
+
+        /* O Terminal de texto */
+        #terminal {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: calc(100% - 60px);
+            z-index: 10; /* Fica na frente */
+            background-color: rgba(0, 0, 0, 0.7); /* Fundo semi-transparente */
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            white-space: pre-wrap;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+            display: none; /* Começa escondido */
+        }
+
+        /* Cursor piscando */
+        #terminal::after {
+            content: "_";
+            animation: piscar 0.8s infinite;
+        }
+
+        @keyframes piscar {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .highlight { color: #fff; text-shadow: 0 0 10px #fff; }
+    }
+    </style>
+</head>
+<body>
+
+    <canvas id="matrixCanvas"></canvas>
+
+    <div id="terminal"></div>
+
+    <script>
+        // --- 1. CONFIGURAÇÃO DA CHUVA MATRIX ---
+        const canvas = document.getElementById("matrixCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // Ajusta o tamanho do canvas para o tamanho da janela
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        // Caracteres que vão cair (letras, números, katakana)
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズブヅプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポ";
+        const chars = alphabet.split("");
+
+        const fontSize = 16;
+        const columns = canvas.width / fontSize; // Quantidade de colunas
+
+        // Array para guardar a posição 'y' de cada coluna
+        const drops = [];
+        for (let x = 0; x < columns; x++) {
+            drops[x] = 1; // Começa no topo
+        }
+
+        function drawMatrix() {
+            // Desenha um fundo preto semi-transparente para criar o efeito de rastro
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Define a cor e a fonte para os caracteres
+            ctx.fillStyle = "#0f0";
+            ctx.font = fontSize + "px 'Courier New'";
+
+            // Desenha os caracteres
+            for (let i = 0; i < drops.length; i++) {
+                // Escolhe um caractere aleatório
+                const text = chars[Math.floor(Math.random() * chars.length)];
+                
+                // Desenha o caractere na posição (i*fontSize, drops[i]*fontSize)
+                // Usamos a coluna 'i' e a altura 'drops[i]'
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                // Se o caractere chegou no fim da tela e uma condição aleatória for atendida, reseta
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+
+                // Incrementa a posição 'y' da gota
+                drops[i]++;
+            }
+        }
+
+        // --- 2. CONFIGURAÇÃO DO TERMINAL (TYPING) ---
+        const terminalText = `
+> PROTOCOLO MATRIX INICIADO.
+> ACESSANDO NÓS CRIPTOGRÁFICOS...
+<span class="highlight">[DECRYPTING]</span>: 10%... 24%... 49%... 78%...
+> ACESSO CONCEDIDO.
+> SISTEMA CONCEDIDO.
+> USUARIO DETECTADO. 
+> AGUARDANDO COMANDOS...`;
+
+        let i = 0;
+        const typingSpeed = 70; // Velocidade da digitação
+
+        function digitar() {
+            if (i < terminalText.length) {
+                // Precisa usar innerHTML para interpretar a tag span
+                document.getElementById("terminal").innerHTML += terminalText.charAt(i);
+                i++;
+                setTimeout(digitar, typingSpeed);
+            }
+        }
+
+        // --- 3. INICIALIZAÇÃO ---
+        // Roda a animação da Matrix 2000 vezes por segundo (aproximadamente)
+        setInterval(drawMatrix, 50);
+
+        // Mostra o terminal e começa a digitar após 30px segundos
+        setTimeout(() => {
+            const terminal = document.getElementById("terminal");
+            terminal.style.display = "block";
+            digitar();
+        }, 2000);
+
+    </script>
+</body>
+</html>
